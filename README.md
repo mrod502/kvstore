@@ -5,6 +5,8 @@
 - some data from stocktwits was used as test data to be stored in the structure.
 - 10,000,000 keys generated using xid were assigned data in the map.
 - all data were accessed, and the time taken was recorded.
+- delete performance was assessed by averaging the time to delete each element.
+- concurrency safety was tested by simultaneously calling ```Get``` and ```Delete``` from separate threads.
 - the performance stats were calculated and put into `results.log`.
 - a call graph was created to get an idea of the calls which contribute the most to the overall runtime.
 
