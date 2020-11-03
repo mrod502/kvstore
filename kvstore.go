@@ -5,15 +5,20 @@ import (
 	"time"
 )
 
+// -------------- Exported --------------- //
+
 //ByteObj - an oject that returns its data as bytes
 type ByteObj interface {
 	GetData() []byte
 }
+
+//Item - a data container
 type Item struct {
 	Data   ByteObj
-	Expiry time.Time
+	Expiry int64
 }
 
+//GetData - call the underlying item's GetData() method
 func (i Item) GetData() []byte {
 	return i.Data.GetData()
 }
@@ -24,22 +29,29 @@ type Store struct {
 	mux  *sync.RWMutex
 }
 
-//Get a value's data
+//Get a value
 func (s Store) Get(k string) Item {
 	s.mux.RLock()
 	defer s.mux.RUnlock()
 	return s.vals[k]
 }
 
+//GetValue - return the underlying object stored
+func (s Store) GetValue(k string) ByteObj {
+	s.mux.RLock()
+	defer s.mux.RUnlock()
+	return s.vals[k].Data
+}
+
 //Set a value
-func (s Store) Set(k string, v ByteObj, exp time.Time) {
+func (s Store) Set(k string, v ByteObj, exp int64) {
 	s.mux.Lock()
 	defer s.mux.Unlock()
 	s.vals[k] = Item{Data: v, Expiry: exp}
 
 }
 
-//Set a value
+//Delete a value
 func (s Store) Delete(k string) {
 	s.mux.Lock()
 	defer s.mux.Unlock()
@@ -47,20 +59,39 @@ func (s Store) Delete(k string) {
 
 }
 
-func NewStore() (s *Store) {
+//NewStore constructs a store and starts the janitor if enabled
+func NewStore(enableJanitor bool) (s *Store) {
 	s = &Store{vals: make(map[string]Item), mux: new(sync.RWMutex)}
-	go s.janitor()
+	if enableJanitor {
+		go s.janitor()
+	}
 	return s
 }
 
-func (s *Store) janitor() {
+// -------------- End Exported --------------- //
 
+func (s Store) getKeys() (out []string) {
+	s.mux.RLock()
+	defer s.mux.RUnlock()
+	out = make([]string, len(s.vals))
+	var i int
+	for k := range s.vals {
+		out[i] = k
+	}
+	return out
+}
+
+//janitor - check expired
+func (s *Store) janitor() {
 	for {
 		time.Sleep(time.Second)
-		now := time.Now()
-		for k := range s.vals {
-			if s.Get(k).Expiry < now {
-				s.Delete(k)
+		now := time.Now().Unix()
+
+		for _, k := range s.getKeys() {
+			if tt := s.Get(k).Expiry; tt < now && tt != 0 {
+				s.mux.Lock()
+				delete(s.vals, k)
+				s.mux.Unlock()
 			}
 		}
 	}

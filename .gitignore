@@ -4,3 +4,6 @@
 *.lnx
 *.osx
 *.arm
+*.out
+*.trace
+*.prof

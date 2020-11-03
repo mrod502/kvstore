@@ -1,0 +1,5 @@
+Standard Dev in access time:                389ns
+Average time to access:                     187ns
+95th percentile (calculated using stDev):   828ns
+99th percentile (calculated using stDev):   1.093µs
+average time to delete:                     399ns
