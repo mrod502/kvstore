@@ -83,7 +83,7 @@ func calcTimeStats(in []time.Duration) (stDev, avg, pt95, pt99 time.Duration) {
 	variance /= time.Duration(len(in))
 
 	stDev = time.Duration(math.Sqrt(float64(variance)))
-	pt95 = avg + ((165 * stDev) / 100) //95th percentile about 1.65 standar deviations above mean
-	pt99 = avg + ((233 * stDev) / 100) //95th percentile about 1.65 standar deviations above mean
+	pt95 = avg + ((165 * stDev) / 100) //95th percentile about 1.65 standard deviations above mean
+	pt99 = avg + ((233 * stDev) / 100) //99th percentile about 2.33 standard deviations above mean
 	return
 }
